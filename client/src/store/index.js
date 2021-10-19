@@ -18,7 +18,9 @@ export const GlobalStoreActionType = {
     LOAD_ID_NAME_PAIRS: "LOAD_ID_NAME_PAIRS",
     SET_CURRENT_LIST: "SET_CURRENT_LIST",
     SET_LIST_NAME_EDIT_ACTIVE: "SET_LIST_NAME_EDIT_ACTIVE",
-    ADD_NEW_LIST: "ADD_NEW_LIST"
+    ADD_NEW_LIST: "ADD_NEW_LIST",
+    MARK_DELETE_LIST: "MARK_DELETE_LIST",
+    DELETE_MARKED_LIST: "DELETE_MARKED_LIST"
 }
 
 // WE'LL NEED THIS TO PROCESS TRANSACTIONS
@@ -99,9 +101,30 @@ export const useGlobalStore = () => {
             }
             case GlobalStoreActionType.ADD_NEW_LIST: {
                 return setStore({
-                    idNamePairs: payload.idNamePairs,
-                    currentList: payload.top5List,
+                    idNamePairs: payload,
+                    currentList: null,
                     newListCounter: store.newListCounter+1,
+                    isListNameEditActive: false,
+                    isItemEditActive: false,
+                    listMarkedForDeletion: null
+                })
+            }
+
+            case GlobalStoreActionType.MARK_DELETE_LIST: {
+                return setStore({
+                    idNamePairs: store.idNamePairs,
+                    currentList: null,
+                    newListCounter: store.newListCounter,
+                    isListNameEditActive: false,
+                    isItemEditActive: false,
+                    listMarkedForDeletion: payload
+                })
+            }
+            case GlobalStoreActionType.DELETE_MARKED_LIST: {
+                return setStore({
+                    idNamePairs: payload,
+                    currentList: null,
+                    newListCounter: store.newListCounter,
                     isListNameEditActive: false,
                     isItemEditActive: false,
                     listMarkedForDeletion: null
@@ -263,10 +286,7 @@ export const useGlobalStore = () => {
                         let pairsArray = response.data.idNamePairs;
                         storeReducer({
                             type: GlobalStoreActionType.ADD_NEW_LIST,
-                            payload: {
-                                idNamePairs: pairsArray,
-                                top5List: top5List
-                            }
+                            payload: pairsArray
                         })
                     }
                 }
@@ -274,6 +294,54 @@ export const useGlobalStore = () => {
             }
         }
         asyncAddNewList();
+    }
+
+    store.hideDeleteListModal = function() {
+        let modal = document.getElementById("delete-modal");
+        modal.classList.remove("is-visible");
+    }
+
+    store.markDeleteList = function(id) {
+        async function asyncMarkDeleteList() {
+            let response = await api.getTop5ListById(id);
+            if(response.data.success) {
+                let markedList = response.data.top5List;
+                storeReducer({
+                    type: GlobalStoreActionType.MARK_DELETE_LIST,
+                    payload: markedList
+                })
+            }
+        }
+        asyncMarkDeleteList();
+    }
+
+    store.deleteMarkedList = function() {
+        async function asyncDeleteMarkedList() {
+            let response = await api.deleteTop5ListById(store.listMarkedForDeletion._id);
+            if(response.data.success) {
+                async function asyncGetListPairs() {
+                    try {
+                        response = await api.getTop5ListPairs();
+                        if(response.data.success) {
+                            let pairsArray = response.data.idNamePairs;
+                            storeReducer({
+                                type: GlobalStoreActionType.DELETE_MARKED_LIST,
+                                payload: pairsArray
+                            })
+                        } 
+                    } catch (error) {
+                        storeReducer({
+                            type: GlobalStoreActionType.DELETE_MARKED_LIST,
+                            payload: []
+                        })
+                    }
+                    
+                    
+                }
+                asyncGetListPairs();
+            }
+        }
+        asyncDeleteMarkedList();
     }
 
     // THIS GIVES OUR STORE AND ITS REDUCER TO ANY COMPONENT THAT NEEDS IT

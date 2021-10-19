@@ -51,6 +51,14 @@ function ListCard(props) {
         setText(event.target.value );
     }
 
+    function handleDeleteModal(event) {
+        event.stopPropagation();
+        let modal = document.getElementById("delete-modal");
+        modal.classList.add("is-visible");
+        let id = event.target.id.substring("delete-list-".length);
+        store.markDeleteList(id);
+    }
+
     let selectClass = "unselected-list-card";
     if (selected) {
         selectClass = "selected-list-card";
@@ -76,6 +84,7 @@ function ListCard(props) {
                 type="button"
                 id={"delete-list-" + idNamePair._id}
                 className="list-card-button"
+                onClick={handleDeleteModal}
                 value={"\u2715"}
             />
             <input
