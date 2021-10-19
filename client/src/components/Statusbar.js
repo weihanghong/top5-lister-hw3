@@ -8,8 +8,8 @@ import { GlobalStoreContext } from '../store'
 function Statusbar() {
     const { store } = useContext(GlobalStoreContext);
     let text ="";
-    if (store.currentList)
-        text = store.currentList.name;
+    if (store.listMarkedForDeletion)
+        text = store.listMarkedForDeletion.name;
     return (
         <div id="top5-statusbar">
             {text}
