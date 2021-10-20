@@ -237,6 +237,12 @@ export const useGlobalStore = () => {
     store.addRenameItemTransaction = function (index, oldName, newName) {
         let transaction = new RenameItem_Transaction(store, index, oldName, newName);
         tps.addTransaction(transaction);
+        let undoButton = document.getElementById("undo-button");
+        undoButton.setAttribute("class", "top5-button");
+        if(tps.hasTransactionToRedo) {
+            let redoButton = document.getElementById("redo-button");
+            redoButton.setAttribute("class", "top5-button");
+        }
     }
     store.changeItemName = function(index, newName) {
         let editList = store.currentList;
@@ -316,6 +322,12 @@ export const useGlobalStore = () => {
     store.addMoveItemTransaction = function (start, end) {
         let transaction = new MoveItem_Transaction(store, start, end);
         tps.addTransaction(transaction);
+        let undoButton = document.getElementById("undo-button");
+        undoButton.setAttribute("class", "top5-button");
+        if(tps.hasTransactionToRedo) {
+            let redoButton = document.getElementById("redo-button");
+            redoButton.setAttribute("class", "top5-button");
+        }
     }
     store.moveItem = function (start, end) {
         start -= 1;
