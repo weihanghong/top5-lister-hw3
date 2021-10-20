@@ -255,6 +255,10 @@ export const useGlobalStore = () => {
             payload: {}
         });
         tps.clearAllTransactions();
+        let undoButton = document.getElementById("undo-button");
+        undoButton.setAttribute("class", "top5-button-disabled");
+        let redoButton = document.getElementById("redo-button");
+        redoButton.setAttribute("class", "top5-button-disabled");
     }
 
     // THIS FUNCTION LOADS ALL THE ID, NAME PAIRS SO WE CAN LIST ALL THE LISTS
@@ -278,10 +282,8 @@ export const useGlobalStore = () => {
                     payload: []
                 })
             }
-            
         }
         asyncLoadIdNamePairs();
-        tps.clearAllTransactions();
     }
 
     // THE FOLLOWING 8 FUNCTIONS ARE FOR COORDINATING THE UPDATING
@@ -305,6 +307,11 @@ export const useGlobalStore = () => {
             }
         }
         asyncSetCurrentList(id);
+        tps.clearAllTransactions();
+        let undoButton = document.getElementById("undo-button");
+        undoButton.setAttribute("class", "top5-button-disabled");
+        let redoButton = document.getElementById("redo-button");
+        redoButton.setAttribute("class", "top5-button-disabled");
     }
     store.addMoveItemTransaction = function (start, end) {
         let transaction = new MoveItem_Transaction(store, start, end);
@@ -401,6 +408,7 @@ export const useGlobalStore = () => {
                 }
                 asyncGetListPairs();
             }
+            store.setCurrentList(response.data.top5List._id);
         }
         asyncAddNewList();
     }
