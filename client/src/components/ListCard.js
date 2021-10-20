@@ -16,7 +16,7 @@ function ListCard(props) {
     const { idNamePair, selected } = props;
 
     function handleLoadList(event) {
-        if (!event.target.disabled) {
+        if (event.target.className !== "list-card-disabled unselected-list-card") {
             let _id = event.target.id;
             if (_id.indexOf('list-card-text-') >= 0)
                 _id = ("" + _id).substring("list-card-text-".length);
@@ -27,14 +27,18 @@ function ListCard(props) {
     }
 
     function handleToggleEdit(event) {
-        event.stopPropagation();
-        toggleEdit();
+        if(event.target.className !== "list-card-button-disabled") {
+            event.stopPropagation();
+            toggleEdit();
+        }
     }
 
     function toggleEdit() {
         let newActive = !editActive;
         if (newActive) {
             store.setIsListNameEditActive();
+        } else {
+            store.setIsListNameEditInactive();
         }
         setEditActive(newActive);
     }
@@ -52,11 +56,13 @@ function ListCard(props) {
     }
 
     function handleDeleteModal(event) {
-        event.stopPropagation();
-        let modal = document.getElementById("delete-modal");
-        modal.classList.add("is-visible");
-        let id = event.target.id.substring("delete-list-".length);
-        store.markDeleteList(id);
+        if(event.target.className!=="list-card-button-disabled") {
+            event.stopPropagation();
+            let modal = document.getElementById("delete-modal");
+            modal.classList.add("is-visible");
+            let id = event.target.id.substring("delete-list-".length);
+            store.markDeleteList(id);
+        }
     }
 
     let selectClass = "unselected-list-card";
@@ -67,12 +73,18 @@ function ListCard(props) {
     if (store.isListNameEditActive) {
         cardStatus = true;
     }
+    let buttonClass = "list-card-button";
+    let cardClass = "list-card ";
+    if(store.isListNameEditActive) {
+        buttonClass = "list-card-button-disabled";
+        cardClass = "list-card-disabled ";
+    }
     let cardElement =
         <div
             id={idNamePair._id}
             key={idNamePair._id}
             onClick={handleLoadList}
-            className={'list-card ' + selectClass}>
+            className={cardClass + selectClass}>
             <span
                 id={"list-card-text-" + idNamePair._id}
                 key={"span-" + idNamePair._id}
@@ -80,18 +92,16 @@ function ListCard(props) {
                 {idNamePair.name}
             </span>
             <input
-                disabled={cardStatus}
                 type="button"
                 id={"delete-list-" + idNamePair._id}
-                className="list-card-button"
+                className={buttonClass}
                 onClick={handleDeleteModal}
                 value={"\u2715"}
             />
             <input
-                disabled={cardStatus}
                 type="button"
                 id={"edit-list-" + idNamePair._id}
-                className="list-card-button"
+                className={buttonClass}
                 onClick={handleToggleEdit}
                 value={"\u270E"}
             />
@@ -106,6 +116,7 @@ function ListCard(props) {
                 onKeyPress={handleKeyPress}
                 onChange={handleUpdateText}
                 defaultValue={idNamePair.name}
+                autoFocus
             />;
     }
     return (

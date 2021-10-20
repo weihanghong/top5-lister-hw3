@@ -12,38 +12,43 @@ function EditToolbar() {
     const history = useHistory();
 
     let enabledButtonClass = "top5-button";
-    function handleUndo() {
-        store.undo();
+    function handleUndo(event) {
+        if(event.target.className !== "top5-button-disabled") {
+            store.undo();
+        }
     }
-    function handleRedo() {
-        store.redo();
+    function handleRedo(event) {
+        if(event.target.className !== "top5-button-disabled") {
+            store.redo();
+        }
     }
-    function handleClose() {
-        history.push("/");
-        store.closeCurrentList();
+    function handleClose(event) {
+        if(event.target.className !== "top5-button-disabled") {
+            history.push("/");
+            store.closeCurrentList();
+        }
     }
-    let editStatus = false;
     if (store.isListNameEditActive) {
-        editStatus = true;
+        enabledButtonClass = "top5-button-disabled";
+    }
+    if (store.isItemEditActive) {
+        enabledButtonClass = "top5-button-disabled";
     }
     return (
         <div id="edit-toolbar">
             <div
-                disabled={editStatus}
                 id='undo-button'
                 onClick={handleUndo}
                 className={enabledButtonClass}>
                 &#x21B6;
             </div>
             <div
-                disabled={editStatus}
                 id='redo-button'
                 onClick={handleRedo}
                 className={enabledButtonClass}>
                 &#x21B7;
             </div>
             <div
-                disabled={editStatus}
                 id='close-button'
                 onClick={handleClose}
                 className={enabledButtonClass}>

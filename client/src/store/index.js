@@ -21,9 +21,12 @@ export const GlobalStoreActionType = {
     SET_CURRENT_LIST: "SET_CURRENT_LIST",
     SET_LIST_NAME_EDIT_ACTIVE: "SET_LIST_NAME_EDIT_ACTIVE",
     SET_ITEM_NAME_EDIT_ACTIVE: "SET_ITEM_NAME_EDIT_ACTIVE",
+    SET_LIST_NAME_EDIT_INACTIVE: "SET_LIST_NAME_EDIT_ACTIVE",
+    SET_ITEM_NAME_EDIT_INACTIVE: "SET_ITEM_NAME_EDIT_ACTIVE",
     ADD_NEW_LIST: "ADD_NEW_LIST",
     MARK_DELETE_LIST: "MARK_DELETE_LIST",
-    DELETE_MARKED_LIST: "DELETE_MARKED_LIST"
+    DELETE_MARKED_LIST: "DELETE_MARKED_LIST",
+    NO_CHANGE: "NO_CHANGE"
 }
 
 // WE'LL NEED THIS TO PROCESS TRANSACTIONS
@@ -51,7 +54,7 @@ export const useGlobalStore = () => {
             case GlobalStoreActionType.CHANGE_LIST_NAME: {
                 return setStore({
                     idNamePairs: payload.idNamePairs,
-                    currentList: payload.top5List,
+                    currentList: null,
                     newListCounter: store.newListCounter,
                     isListNameEditActive: false,
                     isItemEditActive: false,
@@ -122,6 +125,26 @@ export const useGlobalStore = () => {
                     listMarkedForDeletion: null
                 });
             }
+            case GlobalStoreActionType.SET_LIST_NAME_EDIT_INACTIVE: {
+                return setStore({
+                    idNamePairs: store.idNamePairs,
+                    currentList: payload,
+                    newListCounter: store.newListCounter,
+                    isListNameEditActive: false,
+                    isItemEditActive: false,
+                    listMarkedForDeletion: null
+                });
+            }
+            case GlobalStoreActionType.SET_ITEM_NAME_EDIT_INACTIVE: {
+                return setStore({
+                    idNamePairs: store.idNamePairs,
+                    currentList: payload,
+                    newListCounter: store.newListCounter,
+                    isListNameEditActive: false,
+                    isItemEditActive: false,
+                    listMarkedForDeletion: null
+                });
+            }
             case GlobalStoreActionType.ADD_NEW_LIST: {
                 return setStore({
                     idNamePairs: payload,
@@ -147,6 +170,16 @@ export const useGlobalStore = () => {
                 return setStore({
                     idNamePairs: payload,
                     currentList: null,
+                    newListCounter: store.newListCounter,
+                    isListNameEditActive: false,
+                    isItemEditActive: false,
+                    listMarkedForDeletion: null
+                })
+            }
+            case GlobalStoreActionType.NO_CHANGE: {
+                return setStore({
+                    idNamePairs: store.idNamePairs,
+                    currentList: store.currentList,
                     newListCounter: store.newListCounter,
                     isListNameEditActive: false,
                     isItemEditActive: false,
@@ -194,6 +227,13 @@ export const useGlobalStore = () => {
         asyncChangeListName(id);
     }
 
+    store.noChange = function() {
+        storeReducer({
+            type: GlobalStoreActionType.NO_CHANGE,
+            payload: null
+        })
+    }
+
     store.addRenameItemTransaction = function (index, oldName, newName) {
         let transaction = new RenameItem_Transaction(store, index, oldName, newName);
         tps.addTransaction(transaction);
@@ -214,24 +254,34 @@ export const useGlobalStore = () => {
             type: GlobalStoreActionType.CLOSE_CURRENT_LIST,
             payload: {}
         });
+        tps.clearAllTransactions();
     }
 
     // THIS FUNCTION LOADS ALL THE ID, NAME PAIRS SO WE CAN LIST ALL THE LISTS
     store.loadIdNamePairs = function () {
         async function asyncLoadIdNamePairs() {
-            const response = await api.getTop5ListPairs();
-            if (response.data.success) {
-                let pairsArray = response.data.idNamePairs;
+            try {
+                const response = await api.getTop5ListPairs();
+                if (response.data.success) {
+                    let pairsArray = response.data.idNamePairs;
+                    storeReducer({
+                        type: GlobalStoreActionType.LOAD_ID_NAME_PAIRS,
+                        payload: pairsArray
+                    });
+                }
+                else {
+                    console.log("API FAILED TO GET THE LIST PAIRS");
+                }
+            } catch (error) {
                 storeReducer({
                     type: GlobalStoreActionType.LOAD_ID_NAME_PAIRS,
-                    payload: pairsArray
-                });
+                    payload: []
+                })
             }
-            else {
-                console.log("API FAILED TO GET THE LIST PAIRS");
-            }
+            
         }
         asyncLoadIdNamePairs();
+        tps.clearAllTransactions();
     }
 
     // THE FOLLOWING 8 FUNCTIONS ARE FOR COORDINATING THE UPDATING
@@ -316,6 +366,21 @@ export const useGlobalStore = () => {
         })
     }
 
+    store.setIsListNameEditInactive = function () {
+        storeReducer({
+            type: GlobalStoreActionType.SET_LIST_NAME_EDIT_INACTIVE,
+            payload: null
+        });
+    }
+
+    store.setIsItemNameEditInactive = function () {
+        let list = store.currentList;
+        storeReducer({
+            type: GlobalStoreActionType.SET_ITEM_NAME_EDIT_INACTIVE,
+            payload: list
+        })
+    }
+
     store.addNewList = function () {
         async function asyncAddNewList() {
             let newList = {
@@ -324,7 +389,6 @@ export const useGlobalStore = () => {
             }
             let response = await api.createTop5List(newList);
             if(response.data.success) {
-                let top5List = response.data.top5List;
                 async function asyncGetListPairs() {
                     response = await api.getTop5ListPairs();
                     if(response.data.success) {

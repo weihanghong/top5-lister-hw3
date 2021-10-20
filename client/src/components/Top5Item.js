@@ -44,14 +44,18 @@ function Top5Item(props) {
     }
 
     function handleToggleEditItem(event) {
-        event.stopPropagation();
-        toggleEditItem();
+        if(event.target.className !== "list-card-button-disabled") {
+            event.stopPropagation();
+            toggleEditItem();
+        }
     }
 
     function toggleEditItem() {
         let newActive = !editActive;
         if (newActive) {
             store.setIsItemNameEditActive();
+        } else {
+            store.setIsItemNameEditInactive();
         }
         setEditActive(newActive);
     }
@@ -73,7 +77,10 @@ function Top5Item(props) {
     if (draggedTo) {
         itemClass = "top5-item-dragged-to";
     }
-    
+    let buttonClass = "list-card-button";
+    if(store.isItemEditActive) {
+        buttonClass = "list-card-button-disabled";
+    }
     let itemElement =
         <div
             id={'item-' + (index + 1)}
@@ -83,12 +90,12 @@ function Top5Item(props) {
             onDragEnter={handleDragEnter}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
-            draggable="true"
+            draggable={!store.isItemEditActive}
         >
             <input
                 type="button"
                 id={"edit-item-" + index + 1}
-                className="list-card-button"
+                className={buttonClass}
                 onClick={handleToggleEditItem}
                 value={"\u270E"}
             />
@@ -104,6 +111,7 @@ function Top5Item(props) {
                     onKeyPress={handleKeyPress}
                     onChange={handleUpdateText}
                     defaultValue={props.text}
+                    autoFocus
                 />;
         }
 

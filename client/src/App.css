@@ -140,7 +140,7 @@ body {
   overflow: scroll;
 }
 
-.list-card, .selected-list-card, .unselected-list-card {
+.list-card, .selected-list-card, .unselected-list-card, .list-card-disabled {
   font-size: 18pt;
   margin: 10px;
   padding: 20px;
@@ -169,7 +169,7 @@ body {
   background-color: var(--swatch-complement);
 }
 
-.list-card-button {
+.list-card-button, .list-card-button-disabled {
   float:right;
   font-size:18pt;
 }
